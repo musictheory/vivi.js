@@ -1,11 +1,17 @@
-vivi.js
-=======
+# vivi.js
 
-Tiny Javascript wrapper for CSS3 Animations 
+Tiny Javascript wrapper for CSS Defined Animations (@keyframes).  Allows you to start/cancel/pause/unpause
+CSS animations from JavaScript.  Works in Safari/Chrome/Firefox.  Probably works in IE10, but I need to install Windows 8 ;)
 
 
+## Overview
 
-===
+Trying to create/kickoff/pause/resume @keyframe animations from JavaScript was painful.  I couldn't find an
+existing library which used CSS Animations (only CSS Transitions).  I had a very large quadruple latte.  I wrote this.
+
+
+## API
+
 
 vivi.supported()
 ----------
@@ -14,6 +20,8 @@ Returns true if the browser supports CSS3 animations, false otherwise.
 If supported=false, calling `vivi.start()` will throw an error.
 
 ===
+
+
 
 vivi.start()
 ----------
