@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script type="text/javascript" src="vivi.js"></script>
+<style>
+
+
+#well {
+    position: relative;
+    top: 0px; left: 0px;
+    width: 480px;
+    height: 96px;
+    border-radius: 8px;
+    background-color: #444;
+}
+
+#box {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 64px;
+    height: 64px;
+    background-color: #333;
+    border-radius: 6px;
+}
+
+</style>
+
+
+<script type="text/javascript">
+
+var transformAnimation,
+    transformAnimation2,
+    colorAnimation;
+
+function startA()
+{
+    cancelA();
+
+    transformAnimation = vivi.start({
+        element: document.getElementById("box"),
+        duration: 1000,
+        fillMode: "forwards",
+        from: { "transform": "translate3d(0,0,0)" },
+        to:   { "transform": "translate3d(384px, 0, 0) rotate(90deg)" },
+        callback: function(args) {
+            if (args.type == "end") {
+                transformAnimation2 = vivi.start({
+                    element: document.getElementById("box"),
+                    duration: 1000,
+                    to: {
+                        "transform": "translate3d(0,0,0)"
+                    }
+                });
+            }
+        }
+    });
+
+    colorAnimation = vivi.start({
+        element: document.getElementById("box"),
+        duration: 2000,
+        keyframes: {
+            from:  { "background": "blue" },
+            "50%": { "background": "red"  },
+            to:    { "background": "blue" }
+        }
+    });
+}
+
+
+function pauseA()
+{
+    vivi.pause(transformAnimation);
+    vivi.pause(transformAnimation2);
+    vivi.pause(colorAnimation);
+}
+
+
+
+function resumeA()
+{
+    vivi.resume(transformAnimation);
+    vivi.resume(transformAnimation2);
+    vivi.resume(colorAnimation);
+}
+
+
+function cancelA()
+{
+    vivi.cancel(transformAnimation);
+    vivi.cancel(transformAnimation2);
+    vivi.cancel(colorAnimation);
+
+    transformAnimation = transformAnimation2 = colorAnimation = 0;
+}
+
+</script>
+
+</head>
+<body>
+
+<div id="well"><div id="box"></div></div>
+
+<div>
+<input onclick="startA()"  type="submit" value="Start">
+<input onclick="pauseA()"  type="submit" value="Pause">
+<input onclick="resumeA()" type="submit" value="Resume">
+<input onclick="cancelA()" type="submit" value="Cancel">
+</div>
+
+
+</body>
+</html>
