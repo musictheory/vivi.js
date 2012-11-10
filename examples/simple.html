@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script type="text/javascript" src="../src/vivi.js"></script>
+<style>
+
+
+#well {
+    position: relative;
+    top: 0px; left: 0px;
+    width: 480px;
+    height: 96px;
+    border-radius: 8px;
+    background-color: #444;
+}
+
+#box {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 64px;
+    height: 64px;
+    background-color: #333;
+    border-radius: 6px;
+}
+
+</style>
+
+
+<script type="text/javascript">
+
+var animations = { };
+
+
+function animate(label, options, callback)
+{
+    var animationId;
+
+    options.element = document.getElementById("box");
+
+    options.callback = function(args) {
+        var log = document.getElementById("log");
+
+        log.value += label + ": " + args.type + "\n";
+        log.scrollTop = log.scrollHeight;
+
+        if (args.type == "end") {
+            delete(animations[animationId]);
+            if (callback) callback();
+        }
+    };
+
+    animationId = vivi.start(options);
+    animations[animationId] = true;
+}
+
+
+function startA()
+{
+    cancel();
+
+    animate("A1", {
+        duration: 1000,
+        fillMode: "forwards",
+        from: { "transform": "translate3d(0,0,0)" },
+        to:   { "transform": "translate3d(384px, 0, 0) rotate(90deg)" },
+    }, function() {
+        animate("A3", {
+            duration: 1000,
+            remove: false,
+            to: {
+                "transform": "translate3d(0,0,0)"
+            }
+        });
+    })
+
+    animate("A2", {
+        duration: 2000,
+        keyframes: {
+            from:  { "background": "blue" },
+            "50%": { "background": "red"  },
+            to:    { "background": "blue" }
+        }
+    });
+}
+
+
+function pause()
+{
+    for (var key in animations) { if (animations.hasOwnProperty(key)) {
+        vivi.pause(key);
+    }}
+}
+
+
+
+function resume()
+{
+    for (var key in animations) { if (animations.hasOwnProperty(key)) {
+        vivi.resume(key);
+    }}
+}
+
+
+function cancel()
+{
+    for (var key in animations) { if (animations.hasOwnProperty(key)) {
+        vivi.cancel(key);
+    }}
+}
+
+</script>
+
+</head>
+<body>
+
+<div id="well"><div id="box"></div></div>
+
+<div>
+<input onclick="startA()"  type="submit" value="Start">
+<input onclick="pause()"  type="submit" value="Pause">
+<input onclick="resume()" type="submit" value="Resume">
+<input onclick="cancel()" type="submit" value="Cancel">
+</div>
+
+
+<textarea id="log" cols="80" rows="10"></textarea>
+
+</body>
+</html>

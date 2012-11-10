@@ -37,6 +37,8 @@ vivi.start(options) // Returns an animation id
 ### `options` keys: base
 
 - `element` (element, required) - The element to animate
+- `remove` - Should the animation be removed after the `animationend` event is received?
+             If unspecified, defaults to `true` unless `fillMode` is `forwards` or `both`. 
 - `to`, `from`, `keyframes` (object) - Keyframe information.  At least one of these keys is required.
 
 The `keyframes` key takes priority.  When it is present, any `to` and/or `from` keys on the `options` object is ignored.

@@ -1,5 +1,5 @@
 /*
-    vivis.js
+    vivi.js
     Copyright (c) 2012, musictheory.net, LLC.  All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-var vivi = (function() {
+var vivi = (function() { "use strict";
     var _styleSheet,
         _detector,
         _didInit,
@@ -63,12 +63,6 @@ var vivi = (function() {
     function _throw(str)
     {
         throw new Error("vivi.js: " + str);
-    }
-
-
-    function _debug()
-    {
-        console.log.apply(console, arguments);
     }
 
 
@@ -173,7 +167,7 @@ var vivi = (function() {
 
     function _appendKeyframesRule(name, keyframes)
     {
-        var keyframesRules = _appendRule(_keyframeKeyword + " " + name + "{}"),
+        var keyframesRule = _appendRule(_keyframeKeyword + " " + name + "{}"),
             keyframe, key, percentKey, cssText, keyframeRule, prop;
 
         for (key in keyframes) { if (has(keyframes, key)) {
@@ -183,17 +177,17 @@ var vivi = (function() {
             cssText    = percentKey + "{ }";
 
             // 5.3.3 defines appendRule() function on CSSKeyframesRule
-            if (keyframesRules.appendRule) {
-                keyframesRules.appendRule(cssText);
+            if (keyframesRule.appendRule) {
+                keyframesRule.appendRule(cssText);
 
             // Older WebKit used insertRule() instead.  https://bugs.webkit.org/show_bug.cgi?id=57910
             } else {
-                keyframesRules.insertRule(cssText);
+                keyframesRule.insertRule(cssText);
             }
 
-            keyframeRule = keyframesRules.findRule(key);
+            keyframeRule = keyframesRule.findRule(key);
             if (!keyframeRule) {
-                keyframeRule = keyframesRules.findRule(percentKey);
+                keyframeRule = keyframesRule.findRule(percentKey);
             }
 
             if (typeof keyframe == "string") {
@@ -205,8 +199,6 @@ var vivi = (function() {
                 }}
             }
         }}
-
-        return keyframesRules;
     }
 
 
@@ -224,12 +216,16 @@ var vivi = (function() {
 
     function _init()
     {
-        _supported = !!_resolveCSSPropertyName("animation");
-        if (!_supported) return;
+        _didInit = true;
+
+        // Bail if we have no style["animation"] 
+        if (!_resolveCSSPropertyName("animation")) {
+            return;
+        }
 
         var styleElement = document.createElement("style"),
             headElement  = document.getElementsByTagName("head")[0],
-            arr, value, i, length;
+            arr, value, i, length, rule;
 
         styleElement.type  = "text/css";
         styleElement.title = "vivi.js";
@@ -247,11 +243,19 @@ var vivi = (function() {
         for (i = 0, length = arr.length; i < length; i++) {
             value = arr[i];
 
-            if (_appendRule(value + " vivi-js-init {}")) {
-                _keyframeKeyword = value;
+            if ((rule = _appendRule(value + " vivi-js-init {}"))) {
+                // Make sure the needed CSSOM functions are available 
+                if ((rule.insertRule || rule.appendRule) && rule.findRule) {
+                    _keyframeKeyword = value;
+                }
+
                 _removeKeyframesRule("vivi-js-init");
                 break;
             }
+        }
+
+        if (_keyframeKeyword === undefined) {
+            return;
         }
 
         arr = [ "KEYFRAMES_RULE", "WEBKIT_KEYFRAMES_RULE", "MOZ_KEYFRAMES_RULE", "O_KEYFRAMES_RULE" ];
@@ -268,7 +272,7 @@ var vivi = (function() {
             _keyframesRuleNumber = 7;
         }
 
-        _didInit = true;
+        _supported = true;
     }
 
 
@@ -288,24 +292,25 @@ var vivi = (function() {
                 else if (type.match(/end$/i)      )  type = "end";
                 else                                 type = "unknown";
 
+                callbackObject = { 
+                    id: state.id,
+                    event: event,
+                    type: type
+                }
+                if (state.info) callbackObject.info = state.info;
+
                 if (state.callback) {
-                    callbackObject = { 
-                        id: state.id,
-                        event: event,
-                        type: type
-                    }
-
-                    if (state.info) callbackObject.info = state.info;
-
                     state.callback(callbackObject);
                 }
 
                 if (state.completion && event.type.match(/end$/i)) {
-                    state.completion(!state.cancelled);
+                    state.completion(!state.cancelled, callbackObject);
                 }
 
                 if (type == "end") {
-                    _cleanup(state.id)
+                    if (state.remove) {
+                        _cleanup(state.id)
+                    }
                 }
             }
         }
@@ -428,7 +433,7 @@ var vivi = (function() {
             element   = args.element,
             keyframes = args.keyframes,
             name      = _namePrefix + id,
-            state, states, onEnd, index;
+            state, states, onEnd, index, key;
 
         if (!element) _throw("start(): element is " + element);
 
@@ -453,6 +458,20 @@ var vivi = (function() {
 
             return result;
         }
+
+
+        function addCommon(keyframes, common)
+        {
+            common = _resolveAllCSSPropertyNames(common);
+
+            for (var c in common) {
+                for (var k in keyframes) { if (keyframes.hasOwnProperty(k)) {
+                    if (!keyframes[k][c]) {
+                        keyframes[k][c] = common[c];
+                    }
+                }}
+            }
+        }
         
 
         if (!keyframes) {
@@ -471,6 +490,10 @@ var vivi = (function() {
                     keyframes.from = getComputed(keyframes.to);
                 }
             }
+        }
+
+        if (args.common) {
+            addCommon(keyframes, args.common);
         }
 
         _idToStateMap[id] = state = {
@@ -492,6 +515,14 @@ var vivi = (function() {
         if (args.fillMode)           state.fillMode       = args.fillMode;
         if (args.callback)           state.callback       = args.callback;
         if (args.completion)         state.completion     = args.completion;
+
+        if (args.remove !== undefined) {
+            state.remove = args.remove;
+        } else if (state.fillMode == "forwards" || state.fillMode == "both") {
+            state.remove = false;
+        } else {
+            state.remove = true;
+        }
 
         if (typeof state.duration == "number") {
             state.duration += "ms";
@@ -544,7 +575,7 @@ var vivi = (function() {
         start:  start,
         cancel: cancel,
         pause:  function(id) { _pauseOrResume(id,  1); },
-        resume: function(id) { _pauseOrResume(id, -1); },
+        resume: function(id) { _pauseOrResume(id, -1); }
     };
 
 }());
