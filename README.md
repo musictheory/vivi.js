@@ -21,9 +21,20 @@ If supported=false, calling `vivi.start()` will throw an error.
 
 ===
 
+vivi.define()
+----------
 
+Defines an animation
 
-vivi.start()
+===
+
+### Signature
+
+```javascript
+vivi.define(name, keyframes)
+```
+
+vivi.start() / vivi.animate()
 ----------
 
 Starts an animation
@@ -31,15 +42,17 @@ Starts an animation
 ### Signature
 
 ```javascript
-vivi.start(options) // Returns an animation id
+vivi.start(element, options) // Returns an animation id
+vivi.animate(element, options) // Returns an animation id
 ```
 
 ### `options` keys: base
 
-- `element` (element, required) - The element to animate
 - `remove` - Should the animation be removed after the `animationend` event is received?
-             If unspecified, defaults to `true` unless `fillMode` is `forwards` or `both`. 
-- `to`, `from`, `keyframes` (object) - Keyframe information.  At least one of these keys is required.
+             Defaults to `true`.
+- `to`, `from`, `keyframes`, `name` (object) - Keyframe information.  At least one of these keys is required.
+
+If the `name` key is present, the animation will use an existing `@keyframes` animation (or one defined using `vivi.define`).
 
 The `keyframes` key takes priority.  When it is present, any `to` and/or `from` keys on the `options` object is ignored.
 The contents of the keyframes object are used to directly create the CSS @keyframes rule.  This allows the creation of
@@ -48,8 +61,6 @@ complex animations with more than a simple to/from state.
 As a convinience, `to` and `from` keys may be specified on the `options` object.  If both are present (`from: { '...' }, to: { '...' }`),
 it is equivalent to `keyframes: { from: { '...' }, to: { '...' } }`
 
-If only `to` or only `from` is present, the element's computed style is used for the other.
-
 
 ### `options` keys: animation properties
 - `duration` (string or number) - [Duration](http://www.w3.org/TR/css3-animations/#animation-duration-property) of the animation, either a number of milliseconds, or a CSS time value.  Defaults to "0s".
@@ -57,7 +68,7 @@ If only `to` or only `from` is present, the element's computed style is used for
 - `direction` (string) - [Direction](http://www.w3.org/TR/css3-animations/#animation-direction-property) of the animation.  Defaults to "normal".
 - `timingFunction` or `"timing-function"` (string) - [Timing function](http://www.w3.org/TR/css3-animations/#animation-timing-function-property) for the animation. Defaults to "ease".
 - `iterationCount` or `"iteration-count"` (string or number) - [Iteration count](http://www.w3.org/TR/css3-animations/#animation-iteration-count-property) of the animation.  Defaults to 1.
-- `fillMode` or `"fill-mode"` (string) - [Fill mode]() of the animation.  Defaults to "none".
+- `fillMode` or `"fill-mode"` (string) - [Fill mode]() of the animation.  Defaults to "both".
 
 ### `options` keys: callbacks
 
@@ -95,13 +106,14 @@ var theAnimationId = vivi.start({
 
 ===
 
-vivi.cancel()
+vivi.stop() / vivi.cancel()
 ----------
 
 Cancels an animation
 
 ```javascript
 vivi.cancel(id)
+vivi.stop(id)
 ```
 
 ### Arguments
