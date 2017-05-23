@@ -162,10 +162,7 @@ function _appendKeyframesRule(name, keyframes)
             keyframesRule.insertRule(cssText);
         }
 
-        var keyframeRule = keyframesRule.findRule(key);
-        if (!keyframeRule) {
-            keyframeRule = keyframesRule.findRule(percentKey);
-        }
+        var keyframeRule = keyframesRule.findRule(percentKey);
 
         if (typeof keyframe == "string") {
             keyframeRule.style.cssText = keyframe;
